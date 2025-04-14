@@ -2,18 +2,20 @@ import 'package:flutter/material.dart';
 
 import 'package:get/get.dart';
 
-class IndexView extends GetView {
-  const IndexView({super.key});
+import '../controllers/databarang_controller.dart';
+
+class DatabarangView extends GetView<DatabarangController> {
+  const DatabarangView({super.key});
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text(' Halaman Beranda'),
+        title: const Text('DatabarangView'),
         centerTitle: true,
       ),
       body: const Center(
         child: Text(
-          'Bismillah',
+          'DatabarangView is working',
           style: TextStyle(fontSize: 20),
         ),
       ),
