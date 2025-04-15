@@ -9,6 +9,8 @@ abstract class Routes {
   static const DASHBOARD = _Paths.DASHBOARD;
   static const DATABARANG = _Paths.DATABARANG;
   static const PEMBELIAN = _Paths.PEMBELIAN;
+  static const PROFILE = _Paths.PROFILE;
+  
 }
 
 abstract class _Paths {
@@ -19,4 +21,6 @@ abstract class _Paths {
   static const DASHBOARD = '/dashboard';
   static const DATABARANG = '/databarang';
   static const PEMBELIAN = '/pembelian';
+  static const PROFILE = '/profile';
+  
 }

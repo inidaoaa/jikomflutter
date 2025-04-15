@@ -4,7 +4,7 @@ class BaseUrl {
   static String logout = 'http://127.0.0.1:8000/api/logout';
 
   //Data Barang
+  static String databarang = 'http://127.0.0.1:8000/api/databarang';
 
-  static String get = 'http://127.0.0.1:8000/api/databarang';
-
+  static String profile = 'http://127.0.0.1:8000/api/user';
 }

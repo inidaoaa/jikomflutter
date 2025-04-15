@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
-
 import 'package:get/get.dart';
 
 import '../controllers/dashboard_controller.dart';
 
 class DashboardView extends GetView<DashboardController> {
   const DashboardView({super.key});
+
   @override
   Widget build(BuildContext context) {
     DashboardController controller = Get.put(DashboardController());
@@ -24,15 +24,22 @@ class DashboardView extends GetView<DashboardController> {
           onTap: (index) {
             controller.changeIndex(index);
             Get.nestedKey(1)!.currentState!.pushReplacement(
-                  MaterialPageRoute(
-                    builder: (_) => controller.pages[index],
-                  ),
-                );
+              MaterialPageRoute(
+                builder: (_) => controller.pages[index],
+              ),
+            );
           },
+          selectedItemColor: Colors.blue, // bisa diubah sesuai tema
+          unselectedItemColor: Colors.grey,
+          type: BottomNavigationBarType.fixed,
           items: const [
             BottomNavigationBarItem(
               icon: Icon(Icons.home),
               label: 'Beranda',
+            ),
+             BottomNavigationBarItem(
+              icon: Icon(Icons.inventory_2_outlined),
+              label: 'Data Barang',
             ),
             BottomNavigationBarItem(
               icon: Icon(Icons.event),
