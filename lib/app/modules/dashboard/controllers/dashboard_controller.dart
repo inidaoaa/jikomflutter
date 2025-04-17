@@ -1,3 +1,4 @@
+import 'package:daoajikom/app/data/data_barang_response.dart';
 import 'package:daoajikom/app/modules/dashboard/views/index_view.dart';
 import 'package:daoajikom/app/modules/dashboard/views/profile_view.dart';
 import 'package:daoajikom/app/modules/dashboard/views/your_event_view.dart';
@@ -11,8 +12,12 @@ import 'package:get/get_connect.dart';
 class DashboardController extends GetxController {
   final RxInt selectedIndex = 0.obs;
   final GetConnect _getConnect = GetConnect();
-  final GetStorage _storage = GetStorage();
-  
+  final token = GetStorage().read('token');
+  var isLoadingDataBarang = true.obs;
+  var errorMessageDataBarang = ''.obs;
+  var dataBarangList = <DataBarang>[].obs;
+  var refreshDataBarang = ''.obs;
+
   final List<Widget> pages = [
     IndexView(),
     DataBarangView(),
@@ -24,48 +29,13 @@ class DashboardController extends GetxController {
     selectedIndex.value = index;
   }
 
-  Future<void> logOut() async {
-    try {
-      // Ambil token dari local storage
-      final token = _storage.read('token');
-      
-      if (token == null) {
-        throw Exception('Token tidak ditemukan');
-      }
-
-      final response = await _getConnect.post(
-        BaseUrl.logout,
-        {},
-        headers: {'Authorization': 'Bearer $token'},
-        contentType: 'application/json',
-      );
-
-      if (response.statusCode == 200) {
-        // Hapus semua data user dari penyimpanan lokal
-        await _storage.erase();
-        
-        Get.snackbar(
-          'Success',
-          'Logout Success',
-          snackPosition: SnackPosition.BOTTOM,
-          backgroundColor: Colors.green,
-          colorText: Colors.white,
-        );
-        
-        // Redirect ke halaman login
-        Get.offAllNamed('/login');
-      } else {
-        throw Exception('Gagal logout: ${response.statusCode}');
-      }
-    } catch (e) {
-      Get.snackbar(
-        'Failed',
-        'Logout Failed: ${e.toString()}',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.red,
-        colorText: Colors.white,
-      );
-    }
+  Future<DataBarangResponse> getEvent() async {
+    final response = await _getConnect.get(
+      BaseUrl.databarang,
+      headers: {'Authorization': "Bearer $token"},
+      contentType: "application/json",
+    );
+    return DataBarangResponse.fromJson(response.body);
   }
 
   @override

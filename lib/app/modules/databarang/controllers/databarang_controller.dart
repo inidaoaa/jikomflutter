@@ -1,15 +1,30 @@
+import 'package:daoajikom/app/data/data_barang_response.dart';
 import 'package:daoajikom/app/utils/api.dart';
 import 'package:flutter/material.dart';
-import 'package:get/get.dart'; // Pastikan path ini sesuai
-
+import 'package:get/get.dart';
+import 'package:get_storage/get_storage.dart'; // Pastikan path ini sesuai
 
 class DatabarangController extends GetxController {
   final namaBarangController = TextEditingController();
   final jenisBarangController = TextEditingController();
   final merekController = TextEditingController();
 
+  final selectedIndex = 0.obs;
   final _getConnect = GetConnect();
-  final token = "YOUR_API_TOKEN"; // Ganti dengan token yang valid
+  final token = GetStorage().read('token');
+
+  void changeIndex(int index) {
+    selectedIndex.value = index;
+  }
+
+  Future<DataBarangResponse> getDataBarang() async {
+    final response = await _getConnect.get(
+      BaseUrl.databarang,
+      headers: {'Authorization': "Bearer $token"},
+      contentType: "application/json",
+    );
+    return DataBarangResponse.fromJson(response.body);
+  }
 
   void addBarang() async {
     final response = await _getConnect.post(
@@ -23,7 +38,7 @@ class DatabarangController extends GetxController {
       contentType: "application/json",
     );
 
-    if (response.statusCode == 201) {
+    if (response.statusCode == 200) {
       Get.snackbar(
         'Berhasil',
         'Barang berhasil ditambahkan',
@@ -34,7 +49,7 @@ class DatabarangController extends GetxController {
       namaBarangController.clear();
       jenisBarangController.clear();
       merekController.clear();
-      getYourEvent();
+      getDataBarang();
       Get.close(1);
     } else {
       Get.snackbar(
@@ -47,10 +62,6 @@ class DatabarangController extends GetxController {
     }
   }
 
-  void getYourEvent() {
-    print('getYourEvent() dipanggil');
-    // Tambahkan logic fetch data jika perlu
-  }
 
   @override
   void onClose() {
