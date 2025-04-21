@@ -8,11 +8,11 @@ class DataBarangResponse {
   DataBarangResponse.fromJson(Map<String, dynamic> json) {
     status = json['status'];
     message = json['message'];
-    data = json['data'] != null ? new Data.fromJson(json['data']) : null;
+    data = json['data'] != null ? Data.fromJson(json['data']) : null;
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
+    final Map<String, dynamic> data = {};
     data['status'] = status;
     data['message'] = message;
     if (this.data != null) {
@@ -24,40 +24,41 @@ class DataBarangResponse {
 
 class Data {
   int? currentPage;
-  List<Data>? data;
+  List<DataBarang>? data;
   String? firstPageUrl;
   int? from;
   int? lastPage;
   String? lastPageUrl;
   List<Links>? links;
-  Null? nextPageUrl;
+  dynamic nextPageUrl;
   String? path;
   int? perPage;
-  Null? prevPageUrl;
+  dynamic prevPageUrl;
   int? to;
   int? total;
 
-  Data(
-      {this.currentPage,
-      this.data,
-      this.firstPageUrl,
-      this.from,
-      this.lastPage,
-      this.lastPageUrl,
-      this.links,
-      this.nextPageUrl,
-      this.path,
-      this.perPage,
-      this.prevPageUrl,
-      this.to,
-      this.total});
+  Data({
+    this.currentPage,
+    this.data,
+    this.firstPageUrl,
+    this.from,
+    this.lastPage,
+    this.lastPageUrl,
+    this.links,
+    this.nextPageUrl,
+    this.path,
+    this.perPage,
+    this.prevPageUrl,
+    this.to,
+    this.total,
+  });
 
   Data.fromJson(Map<String, dynamic> json) {
     currentPage = json['current_page'];
     if (json['data'] != null) {
-      data = <Data>[];
+      data = <DataBarang>[];
       json['data'].forEach((v) {
-        data!.add(new Data.fromJson(v));
+        data!.add(DataBarang.fromJson(v));
       });
     }
     firstPageUrl = json['first_page_url'];
@@ -67,7 +68,7 @@ class Data {
     if (json['links'] != null) {
       links = <Links>[];
       json['links'].forEach((v) {
-        links!.add(new Links.fromJson(v));
+        links!.add(Links.fromJson(v));
       });
     }
     nextPageUrl = json['next_page_url'];
@@ -79,7 +80,7 @@ class Data {
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = Map<String, dynamic>();
+    final Map<String, dynamic> data = {};
     data['current_page'] = currentPage;
     if (this.data != null) {
       data['data'] = this.data!.map((v) => v.toJson()).toList();
@@ -101,6 +102,7 @@ class Data {
   }
 }
 
+
 class DataBarang {
   int? id;
   String? namaBarang;
@@ -111,15 +113,16 @@ class DataBarang {
   String? updatedAt;
   String? pembeliansSumJumlah;
 
-  DataBarang(
-      {this.id,
-      this.namaBarang,
-      this.jenisBarang,
-      this.merek,
-      this.jumlah,
-      this.createdAt,
-      this.updatedAt,
-      this.pembeliansSumJumlah});
+  DataBarang({
+    this.id,
+    this.namaBarang,
+    this.jenisBarang,
+    this.merek,
+    this.jumlah,
+    this.createdAt,
+    this.updatedAt,
+    this.pembeliansSumJumlah,
+  });
 
   DataBarang.fromJson(Map<String, dynamic> json) {
     id = json['id'];
@@ -129,11 +132,11 @@ class DataBarang {
     jumlah = json['jumlah'];
     createdAt = json['created_at'];
     updatedAt = json['updated_at'];
-    pembeliansSumJumlah = json['pembelians_sum_jumlah'];
+    pembeliansSumJumlah = json['pembelians_sum_jumlah']?.toString();
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = Map<String, dynamic>();
+    final Map<String, dynamic> data = {};
     data['id'] = id;
     data['nama_barang'] = namaBarang;
     data['jenis_barang'] = jenisBarang;
@@ -160,7 +163,7 @@ class Links {
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = Map<String, dynamic>();
+    final Map<String, dynamic> data = {};
     data['url'] = url;
     data['label'] = label;
     data['active'] = active;

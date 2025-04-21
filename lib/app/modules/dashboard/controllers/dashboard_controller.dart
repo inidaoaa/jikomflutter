@@ -13,15 +13,12 @@ class DashboardController extends GetxController {
   final RxInt selectedIndex = 0.obs;
   final GetConnect _getConnect = GetConnect();
   final token = GetStorage().read('token');
-  var isLoadingDataBarang = true.obs;
   var errorMessageDataBarang = ''.obs;
   var dataBarangList = <DataBarang>[].obs;
-  var refreshDataBarang = ''.obs;
 
   final List<Widget> pages = [
     IndexView(),
     DataBarangView(),
-    YourEventView(),
     ProfileView(),
   ];
 
@@ -29,13 +26,23 @@ class DashboardController extends GetxController {
     selectedIndex.value = index;
   }
 
-  Future<DataBarangResponse> getEvent() async {
-    final response = await _getConnect.get(
-      BaseUrl.databarang,
-      headers: {'Authorization': "Bearer $token"},
-      contentType: "application/json",
-    );
-    return DataBarangResponse.fromJson(response.body);
+  // Fungsi untuk mengambil data barang
+  Future<DataBarangResponse> getDataBarang() async {
+    try {
+      final response = await _getConnect.get(
+        BaseUrl.databarang, 
+        headers: {'Authorization': "Bearer $token"},
+        contentType: "application/json",
+      );
+
+      if (response.isOk) {
+        return DataBarangResponse.fromJson(response.body);
+      } else {
+        throw Exception('Gagal memuat data');
+      }
+    } catch (e) {
+      throw Exception('Terjadi kesalahan: $e');
+    }
   }
 
   @override
@@ -54,3 +61,5 @@ class DashboardController extends GetxController {
     super.onClose();
   }
 }
+
+

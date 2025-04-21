@@ -1,3 +1,4 @@
+import 'package:daoajikom/app/modules/databarang/bindings/databarang_binding.dart';
 import 'package:daoajikom/app/modules/databarang/views/add_view.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -6,13 +7,27 @@ import 'package:zoom_tap_animation/zoom_tap_animation.dart';
 
 import '../../../data/data_barang_response.dart';
 import '../controllers/dashboard_controller.dart';
-import 'add_view.dart';
 
-class DataBarangView extends StatelessWidget {
-  DataBarangView({super.key});
-  
-  final DashboardController controller = Get.put(DashboardController());
+class DataBarangView extends StatefulWidget {
+  const DataBarangView({super.key});
+
+  @override
+  State<DataBarangView> createState() => _DataBarangViewState();
+}
+
+class _DataBarangViewState extends State<DataBarangView> {
+  final DashboardController controller = Get.find<DashboardController>();
   final ScrollController _scrollController = ScrollController();
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _refreshData() async {
+    await controller.getDataBarang();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -20,17 +35,16 @@ class DataBarangView extends StatelessWidget {
       appBar: AppBar(
         title: const Text('Data Barang'),
         centerTitle: true,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: () => controller.refreshDataBarang(),
-          ),
-        ],
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => Get.to(() => AddView()),
-        child: const Icon(Icons.add),
-      ),
+     floatingActionButton: FloatingActionButton(
+  onPressed: () async {
+    await Get.to(
+      () => AddView(),
+      binding: DatabarangBinding(), // Inisialisasi controller
+    );
+    _refreshData();
+  },
+),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: FutureBuilder<DataBarangResponse>(
@@ -53,9 +67,13 @@ class DataBarangView extends StatelessWidget {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Text("Gagal memuat data barang"),
+                    Text(
+                      "Gagal memuat data: ${snapshot.error}",
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 16),
                     ElevatedButton(
-                      onPressed: () => controller.refreshDataBarang(),
+                      onPressed: _refreshData,
                       child: const Text('Coba Lagi'),
                     ),
                   ],
@@ -64,81 +82,34 @@ class DataBarangView extends StatelessWidget {
             }
 
             // Jika tidak ada data
-            if (!snapshot.hasData || 
-                snapshot.data?.data?.data == null || 
+            if (!snapshot.hasData ||
+                snapshot.data?.data?.data == null ||
                 snapshot.data!.data!.data!.isEmpty) {
-              return const Center(child: Text("Tidak ada data barang"));
+              return Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Text("Tidak ada data barang"),
+                    const SizedBox(height: 16),
+                    ElevatedButton(
+                      onPressed: _refreshData,
+                      child: const Text('Muat Ulang'),
+                    ),
+                  ],
+                ),
+              );
             }
 
-            // Tampilkan data barang
+            final dataBarang = snapshot.data!.data!.data!;
+
             return RefreshIndicator(
-              onRefresh: () => controller.refreshDataBarang(),
+              onRefresh: _refreshData,
               child: ListView.builder(
                 controller: _scrollController,
-                itemCount: snapshot.data!.data!.data!.length,
+                itemCount: dataBarang.length,
                 itemBuilder: (context, index) {
-                  final barang = snapshot.data!.data!.data![index];
-                  return ZoomTapAnimation(
-                    onTap: () {
-                      // Aksi ketika item di-tap
-                      // Get.to(() => DetailBarangView(barang: barang));
-                    },
-                    child: Card(
-                      margin: const EdgeInsets.only(bottom: 16),
-                      child: Padding(
-                        padding: const EdgeInsets.all(16.0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              barang.namaBarang ?? "Nama Barang",
-                              style: const TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            Row(
-                              children: [
-                                const Icon(Icons.category, size: 16),
-                                const SizedBox(width: 4),
-                                Text(
-                                  barang.jenisBarang ?? "-",
-                                  style: const TextStyle(fontSize: 14),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 8),
-                            Row(
-                              children: [
-                                const Icon(Icons.branding_watermark, size: 16),
-                                const SizedBox(width: 4),
-                                Text(
-                                  barang.data!.[index]. ?? "-",
-                                  style: const TextStyle(fontSize: 14),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 8),
-                            Row(
-                              children: [
-                                const Icon(Icons.inventory, size: 16),
-                                const SizedBox(width: 4),
-                                Text(
-                                  "Stok: ${barang.jumlah ?? "0"}",
-                                  style: const TextStyle(
-                                    fontSize: 14,
-                                    color: Colors.blue,
-                                  ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 8),
-                          ],
-                        ),
-                      ),
-                    ),
-                  );
+                  final barang = dataBarang[index];
+                  return _buildBarangItem(barang);
                 },
               ),
             );
@@ -148,13 +119,56 @@ class DataBarangView extends StatelessWidget {
     );
   }
 
-  String _formatDate(String? dateString) {
-    if (dateString == null) return "-";
-    try {
-      final date = DateTime.parse(dateString);
-      return "${date.day}/${date.month}/${date.year}";
-    } catch (e) {
-      return "-";
-    }
+  Widget _buildBarangItem(DataBarang barang) {
+    return ZoomTapAnimation(
+      onTap: () {
+        // Aksi ketika item di-tap
+        // Get.to(() => DetailBarangView(barang: barang));
+      },
+      child: Card(
+        margin: const EdgeInsets.only(bottom: 16),
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                barang.namaBarang ?? "Nama Barang",
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 8),
+              _buildInfoRow(Icons.category, barang.jenisBarang ?? "-"),
+              const SizedBox(height: 8),
+              _buildInfoRow(Icons.branding_watermark, barang.merek ?? "-"),
+              const SizedBox(height: 8),
+              _buildInfoRow(
+                Icons.inventory,
+                "Stok: ${barang.jumlah ?? "0"}",
+                textColor: Colors.blue,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildInfoRow(IconData icon, String text, {Color? textColor}) {
+    return Row(
+      children: [
+        Icon(icon, size: 16),
+        const SizedBox(width: 4),
+        Text(
+          text,
+          style: TextStyle(
+            fontSize: 14,
+            color: textColor,
+          ),
+        ),
+      ],
+    );
   }
 }

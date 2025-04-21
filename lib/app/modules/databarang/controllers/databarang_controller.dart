@@ -2,66 +2,105 @@ import 'package:daoajikom/app/data/data_barang_response.dart';
 import 'package:daoajikom/app/utils/api.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:get_storage/get_storage.dart'; // Pastikan path ini sesuai
+import 'package:get_storage/get_storage.dart';
 
 class DatabarangController extends GetxController {
+  // Controllers untuk text field
   final namaBarangController = TextEditingController();
   final jenisBarangController = TextEditingController();
   final merekController = TextEditingController();
 
+  // State management
   final selectedIndex = 0.obs;
+  final isLoading = false.obs;
+  final isAdding = false.obs;
+  
+  // API client
   final _getConnect = GetConnect();
-  final token = GetStorage().read('token');
+  final token = GetStorage().read('token') ?? '';
+
+  // Form key untuk validasi
+  final formKey = GlobalKey<FormState>();
 
   void changeIndex(int index) {
     selectedIndex.value = index;
   }
 
   Future<DataBarangResponse> getDataBarang() async {
-    final response = await _getConnect.get(
-      BaseUrl.databarang,
-      headers: {'Authorization': "Bearer $token"},
-      contentType: "application/json",
-    );
-    return DataBarangResponse.fromJson(response.body);
-  }
-
-  void addBarang() async {
-    final response = await _getConnect.post(
-      BaseUrl.databarang, // Pastikan BaseUrl.databarang ada
-      {
-        'nama_barang': namaBarangController.text,
-        'jenis_barang': jenisBarangController.text,
-        'merek': merekController.text,
-      },
-      headers: {'Authorization': "Bearer $token"},
-      contentType: "application/json",
-    );
-
-    if (response.statusCode == 200) {
-      Get.snackbar(
-        'Berhasil',
-        'Barang berhasil ditambahkan',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.green,
-        colorText: Colors.white,
+    try {
+      isLoading(true);
+      final response = await _getConnect.get(
+        BaseUrl.databarang,
+        headers: {'Authorization': "Bearer $token"},
       );
-      namaBarangController.clear();
-      jenisBarangController.clear();
-      merekController.clear();
-      getDataBarang();
-      Get.close(1);
-    } else {
+      
+      if (response.statusCode == 200) {
+        return DataBarangResponse.fromJson(response.body);
+      } else {
+        throw Exception('Failed to load data: ${response.statusCode}');
+      }
+    } catch (e) {
       Get.snackbar(
-        'Gagal',
-        'Gagal menambahkan barang',
+        'Error',
+        'Gagal memuat data: ${e.toString()}',
         snackPosition: SnackPosition.BOTTOM,
         backgroundColor: Colors.red,
         colorText: Colors.white,
       );
+      rethrow;
+    } finally {
+      isLoading(false);
     }
   }
 
+  Future<bool> addBarang() async {
+    try {
+      if (!formKey.currentState!.validate()) return false;
+      
+      isAdding(true);
+      final response = await _getConnect.post(
+        BaseUrl.databarang,
+        {
+          'nama_barang': namaBarangController.text.trim(),
+          'jenis_barang': jenisBarangController.text.trim(),
+          'merek': merekController.text.trim(),
+        },
+        headers: {'Authorization': "Bearer $token"},
+      );
+
+      if (response.statusCode == 200) {
+        Get.snackbar(
+          'Berhasil',
+          'Barang berhasil ditambahkan',
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: Colors.green,
+          colorText: Colors.white,
+        );
+        clearForm();
+        await getDataBarang(); // Refresh data
+        return true;
+      } else {
+        throw Exception('Failed to add: ${response.statusCode}');
+      }
+    } catch (e) {
+      Get.snackbar(
+        'Gagal',
+        'Gagal menambahkan barang: ${e.toString()}',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+      );
+      return false;
+    } finally {
+      isAdding(false);
+    }
+  }
+
+  void clearForm() {
+    namaBarangController.clear();
+    jenisBarangController.clear();
+    merekController.clear();
+  }
 
   @override
   void onClose() {
