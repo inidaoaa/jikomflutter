@@ -4,7 +4,6 @@ import 'package:daoajikom/app/modules/databarang/controllers/databarang_controll
 
 class AddView extends StatelessWidget {
   AddView({super.key});
-
   final DatabarangController controller = Get.find<DatabarangController>();
 
   @override
@@ -21,10 +20,11 @@ class AddView extends StatelessWidget {
           child: SingleChildScrollView(
             child: Column(
               children: [
+                // Nama Barang Field
                 TextFormField(
                   controller: controller.namaBarangController,
                   decoration: InputDecoration(
-                    labelText: 'Nama Barang',
+                    labelText: 'Nama Barang*',
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(8.0),
                     ),
@@ -35,14 +35,19 @@ class AddView extends StatelessWidget {
                     if (value == null || value.isEmpty) {
                       return 'Nama barang wajib diisi';
                     }
+                    if (value.length < 3) {
+                      return 'Nama barang terlalu pendek';
+                    }
                     return null;
                   },
                 ),
                 const SizedBox(height: 16),
+                
+                // Jenis Barang Field
                 TextFormField(
                   controller: controller.jenisBarangController,
                   decoration: InputDecoration(
-                    labelText: 'Jenis Barang',
+                    labelText: 'Jenis Barang*',
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(8.0),
                     ),
@@ -57,10 +62,12 @@ class AddView extends StatelessWidget {
                   },
                 ),
                 const SizedBox(height: 16),
+                
+                // Merek Field (Optional)
                 TextFormField(
                   controller: controller.merekController,
                   decoration: InputDecoration(
-                    labelText: 'Merek',
+                    labelText: 'Merek (Opsional)',
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(8.0),
                     ),
@@ -69,41 +76,57 @@ class AddView extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 24),
-                Obx(() => SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton.icon(
-                    onPressed: controller.isAdding.value
-                        ? null
-                        : () async {
-                            if (controller.formKey.currentState!.validate()) {
-                              final success = await controller.addBarang();
-                              if (success) {
-                                Get.back();
+                
+                // Submit Button
+                Obx(() {
+                  return SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: controller.isAdding.value
+                          ? null
+                          : () async {
+                              if (controller.formKey.currentState!.validate()) {
+                                try {
+                                  final success = await controller.addBarang();
+                                  if (success) {
+                                    Get.back();
+                                  }
+                                } catch (e) {
+                                  Get.snackbar(
+                                    'Error',
+                                    'Gagal menyimpan: ${e.toString()}',
+                                    snackPosition: SnackPosition.TOP,
+                                  );
+                                }
                               }
-                            }
-                          },
-                    icon: controller.isAdding.value
-                        ? const SizedBox(
-                            width: 16,
-                            height: 16,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              color: Colors.white,
-                            ),
-                          )
-                        : const Icon(Icons.save),
-                    label: Text(
-                      controller.isAdding.value ? 'Menyimpan...' : 'Simpan',
-                    ),
-                    style: ElevatedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      backgroundColor: Colors.blue,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8.0),
+                            },
+                      style: ElevatedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        backgroundColor: Colors.blue.shade700,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8.0),
+                        ),
+                        elevation: 2,
                       ),
+                      child: controller.isAdding.value
+                          ? const SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: Colors.white,
+                              ),
+                            )
+                          : const Text(
+                              'SIMPAN DATA',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
                     ),
-                  ),
-                )),
+                  );
+                }),
               ],
             ),
           ),

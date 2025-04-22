@@ -36,21 +36,23 @@ class _DataBarangViewState extends State<DataBarangView> {
         title: const Text('Data Barang'),
         centerTitle: true,
       ),
-     floatingActionButton: FloatingActionButton(
-  onPressed: () async {
-    await Get.to(
-      () => AddView(),
-      binding: DatabarangBinding(), // Inisialisasi controller
-    );
-    _refreshData();
-  },
-),
+    floatingActionButton: FloatingActionButton(
+          onPressed: () async {
+            await Get.to(
+              () => AddView(),
+              binding: DatabarangBinding(),
+            );
+            await _refreshData();
+            setState(() {});
+          },
+          child: Icon(Icons.add),
+          tooltip: 'Tambah Data',
+        ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: FutureBuilder<DataBarangResponse>(
           future: controller.getDataBarang(),
           builder: (context, snapshot) {
-            // Jika data sedang dimuat
             if (snapshot.connectionState == ConnectionState.waiting) {
               return Center(
                 child: Lottie.network(
